@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-scripts
+data:
+  table_schema.json: |-
+    {
+      "TableName": "api-table-dev",
+      "KeySchema": [
+        {
+          "AttributeName": "id",
+          "KeyType": "HASH"
+        }
+      ],
+      "AttributeDefinitions": [
+        {
+          "AttributeName": "id",
+          "AttributeType": "S"
+        }
+      ],
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 500,
+        "WriteCapacityUnits": 500
+      },
+      "StreamSpecification": {
+        "StreamEnabled": true,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      }
+    }
+  create_bucket_local_s3.sh: |-
+    #!/bin/bash
+
+    if [ -z "$1" ]; then
+        echo "Usage:"
+        echo "    create_bucket_loal_s3.sh <queue name> [<s3 host>] [<s3 port>]"
+        exit -1;
+    else
+        BUCKET_NAME=$1
+    fi
+    if [ -z "$2" ]; then
+        LOCAL_HOST=http://localhost
+    else
+        LOCAL_HOST=$2
+    fi
+    if [ -z "$3" ]; then
+        LOCAL_PORT=4572
+    else
+        LOCAL_PORT=$3
+    fi
+
+    export AWS_ACCESS_KEY_ID=aws_access_key_id
+    export AWS_SECRET_ACCESS_KEY=aws_secret_key
+
+    aws s3api create-bucket --bucket ${BUCKET_NAME} --endpoint ${LOCAL_HOST}:${LOCAL_PORT} --region us-east-1
+  create_queue_local_sqs.sh: |-
+    #!/bin/bash
+
+    if [ -z "$1" ]; then
+        echo "Usage:"
+        echo "    create_queue_local_sqs.sh <queue name> [<sqs host>] [<sqs port>]"
+        exit -1;
+    else
+        QUEUE_NAME=$1
+    fi
+    if [ -z "$2" ]; then
+        LOCAL_HOST=http://localhost
+    else
+        LOCAL_HOST=$2
+    fi
+    if [ -z "$3" ]; then
+        LOCAL_PORT=4576
+    else
+        LOCAL_PORT=$3
+    fi
+
+    export AWS_ACCESS_KEY_ID=aws_access_key_id
+    export AWS_SECRET_ACCESS_KEY=aws_secret_key
+
+    aws sqs create-queue --queue-name ${QUEUE_NAME} --endpoint ${LOCAL_HOST}:${LOCAL_PORT} --region us-east-1
+  create_table_local_dynamo.sh: |-
+    #!/bin/bash
+
+    if [ -z "$1" ]; then
+        LOCAL_HOST=http://localhost
+    else
+        LOCAL_HOST=$1
+    fi
+    if [ -z "$2" ]; then
+        LOCAL_PORT=8000
+    else
+        LOCAL_PORT=$2
+    fi
+
+    DB_SCHEMA=scripts/table_schema.json
+    export AWS_ACCESS_KEY_ID=aws_access_key_id
+    export AWS_SECRET_ACCESS_KEY=aws_secret_key
+
+    function createTable {
+        JSON_SCHEMA=$1
+        echo "Init local table with endpoint ${LOCAL_HOST}:${LOCAL_PORT} from json file ${JSON_SCHEMA}"
+
+        aws dynamodb create-table  \
+            --cli-input-json file://${JSON_SCHEMA} \
+            --endpoint-url ${LOCAL_HOST}:${LOCAL_PORT} \
+            --region=us-east-1
+    }
+
+    createTable ${DB_SCHEMA}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-startup-script
+data:
+  startup.sh: |-
+    #!/bin/bash
+    set -uxe
+
+    set +u
+    if [ -z "$1" ]; then
+        readonly host="localhost"
+    else
+        readonly host=$1
+    fi
+    set -u
+
+    ./scripts/create_table_local_dynamo.sh "http://$host" 4569 || true
+    ./scripts/create_queue_local_sqs.sh api-sqs-dev "http://$host" 4576 || true
+    ./scripts/create_bucket_local_s3.sh devbucket "http://$host" 4572 || true
+
+
+
+
