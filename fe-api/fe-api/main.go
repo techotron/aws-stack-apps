@@ -5,12 +5,23 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/aws/session"
+	// "github.com/aws/aws-sdk-go/aws/endpoints"
 
 	"fmt"
 )
 
 
 func listDdbTables() {
+	// myCustomResolver := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+	// 	if service == endpoints.DynamodbServiceID {
+	// 		return endpoints.ResolvedEndpoint{
+	// 			URL:           "s3.custom.endpoint.com",
+	// 		}, nil
+	// 	}
+	
+	// 	return endpoints.DefaultResolver().EndpointFor(service, region, optFns...)
+	// }
+
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -70,12 +81,7 @@ func main() {
 	})
 
 	r.GET("/listtables", func(c *gin.Context) {
-		
-		var ddbTables = listDdbTables()
-		
-		c.JSON(200, gin.H{
-			"tables": ddbTables,
-		})
+		listDdbTables()
 	})	
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
