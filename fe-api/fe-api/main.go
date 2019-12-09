@@ -25,14 +25,18 @@ func listDdbTables() {
 	// }
 
 
-	var aws_region = os.Getenv("AWS_REGION")
-
 	// Create new AWS session using region from env var and default AWS Cred env vars
 	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String(aws_region)},
+		Region: aws.String(os.Getenv("AWS_REGION"))},
 	)
 	
-	svc := dynamodb.New(sess)
+	// Create new DDB service using a custom DDB endpoint
+
+	var DdbEndpoint = os.Getenv("DYNAMODB_HOST") + ":" + os.Getenv("DYNAMODB_PORT")
+
+	svc := dynamodb.New(sess, &aws.Config{
+		Endpoint: aws.String(DdbEndpoint)},
+	)
 
 	input := &dynamodb.ListTablesInput{}
 
