@@ -26,7 +26,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: DYNAMODB_HOST
-              value: "localstack-multi.awsstackapps.svc.cluster.local"
+              value: "http://localstack-multi.awsstackapps.svc.cluster.local"
             - name: DYNAMODB_PORT
               value: "4569"  
             - name: AWS_ACCESS_KEY_ID
