@@ -2,11 +2,13 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/aws/session"
 	// "github.com/aws/aws-sdk-go/aws/endpoints"
 
+	"os"
 	"fmt"
 )
 
@@ -22,9 +24,13 @@ func listDdbTables() {
 	// 	return endpoints.DefaultResolver().EndpointFor(service, region, optFns...)
 	// }
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+
+	var aws_region = os.Getenv("AWS_REGION")
+
+	// Create new AWS session using region from env var and default AWS Cred env vars
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String(aws_region)},
+	)
 	
 	svc := dynamodb.New(sess)
 
