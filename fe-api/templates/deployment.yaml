@@ -25,16 +25,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: DYNAMODB_HOST
-              value: "http://localstack-multi.awsstackapps.svc.cluster.local"
-            - name: DYNAMODB_PORT
-              value: "4569"  
-            - name: AWS_ACCESS_KEY_ID
-              value: "aws_access_key_id"
-            - name: AWS_SECRET_ACCESS_KEY
-              value: "aws_secret_key"
-            - name: AWS_REGION
-              value: "us-east-1"                        
+          {{- range $key, $value := .Values.env }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+          {{- end }}                       
           ports:
             - name: http
               containerPort: 8080
