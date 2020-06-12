@@ -6,6 +6,10 @@ Localstack deployment with multiple services enabled
 
 URL: SERVICENAME.NAMESPACE.svc.cluster.local
 
+## Intention
+
+Run a bunch of microservices in a k8s cluster so I can learn about k8s, code, service mesh etc.
+
 ### Deploy
 
 ```bash
